@@ -45,8 +45,12 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
     Location myCurrentLoc;
+    Location destLoc;
+    double distance=0;
+    double min_distance=Double.MAX_VALUE;
+    long next_alarm=500;
+    String notify_subject;
     LocationManager mLocationManager;
-
     //------------repeat--------------------
 
     private AlarmManager mAlarmManager;
@@ -143,7 +147,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     public void onConnected(Bundle bundle) {
         //  myCurrentLoc= LocationServices.FusedLocationApi.getLastLocation(
         //         mGoogleApiClient);
-        Toast.makeText(this, "connected", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "connected", Toast.LENGTH_SHORT).show();
 
         //------------------------------
         mLocationRequest =  LocationRequest.create();
@@ -155,34 +159,67 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         // mLocationManager.requestLocationUpdates();
         mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
         toast = myCurrentLoc.getLatitude() + " " + myCurrentLoc.getLongitude();
-        Toast.makeText(this, toast, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, toast, Toast.LENGTH_SHORT).show();
 
-        //--------------------- Repeat-------------
+        //compare with every entry in Map
+        Set<Map.Entry<String,String>> se=map.entrySet();
 
-        mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        for(Map.Entry<String,String> me : se)
+        {
+            String[] str = me.getValue().split(" ");
+            double latdest = Double.parseDouble(str[0]);
+            double longdest = Double.parseDouble(str[1]);
+            destLoc = new Location("Destination");
+            destLoc.setLatitude(latdest);
+            destLoc.setLongitude(longdest);
+            distance=myCurrentLoc.distanceTo(destLoc);
+            //Log.e("tagrugby","Subject:"+me.getKey()+" || lat: "+str[0]+"   lod: "+str[1]+"  || distance:"+distance);
 
-        // Create an Intent to broadcast to the AlarmNotificationReceiver
-        mNotificationReceiverIntent = new Intent(MyService.this,
-                AlarmNotificationReceiver.class);
+            if(min_distance > distance)
+            {
+                notify_subject=me.getKey();
+                min_distance=distance;
+            }
 
-        // Create an PendingIntent that holds the NotificationReceiverIntent
-        mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
-                MyService.this, 0, mNotificationReceiverIntent, 0);
+            //System.out.println(me.getKey()+"  --  "+me.getValue());
+        }
+        Log.e("tag","Map size :"+map.size()+" || min_dist:"+min_distance);
+        if(min_distance < 1000 )
+        {
+            Toast.makeText(MyService.this,"You are within 1 km of "+notify_subject,Toast.LENGTH_LONG).show();
+            stopSelf();
 
-
-        // Set single alarm
-        mAlarmManager.set(AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis() + INITIAL_ALARM_DELAY,
-                mNotificationReceiverPendingIntent);
-
-
-        // Show Toast message
-        Toast.makeText(getApplicationContext(), "Single Alarm Set",
-                Toast.LENGTH_SHORT).show();
-
-        //--------------------------------------
+        }
+        else {
+            //--------------------- Repeat-------------
 
 
+            //--------------------- Repeat-------------
+
+            mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+            // Create an Intent to broadcast to the AlarmNotificationReceiver
+            mNotificationReceiverIntent = new Intent(MyService.this,
+                    AlarmNotificationReceiver.class);
+
+            // Create an PendingIntent that holds the NotificationReceiverIntent
+            mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
+                    MyService.this, 0, mNotificationReceiverIntent, 0);
+
+
+            // Set single alarm
+
+            next_alarm=distaceToTime(min_distance);
+            mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + next_alarm,
+                    mNotificationReceiverPendingIntent);//UPGRADEABLE
+            // Show Toast message
+            Toast.makeText(getApplicationContext(), "Single Alarm Set",
+                    Toast.LENGTH_SHORT).show();
+
+            //--------------------------------------
+
+        }
         stopSelf();//calls destroy method
     }
 
@@ -216,6 +253,11 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
     }
 
+    public long distaceToTime(double distance)
+    {
+        return 30000;
 
+
+    }
 
 }
