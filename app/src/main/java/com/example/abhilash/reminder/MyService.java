@@ -10,6 +10,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -19,21 +20,25 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class MyService extends Service implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,LocationListener
+        GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener
 {
     @Override
     public void onStart(Intent intent, int startId) {
@@ -58,6 +63,12 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     private PendingIntent mNotificationReceiverPendingIntent;
     private static final long INITIAL_ALARM_DELAY = 1 * 10 * 1000L;
     protected static final long JITTER = 5000L;
+
+    //LocationListener ll;
+
+    private static final long INTERVAL = 1000 * 10;
+    private static final long FASTEST_INTERVAL = 1000 * 5;
+
 
     private final BroadcastReceiver mybroadcast = new AlarmNotificationReceiver();
 
@@ -115,7 +126,12 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 .addOnConnectionFailedListener(this)
                 .build();
         mGoogleApiClient.connect();
-        //waits for onConnected CallBack
+
+        createLocationRequest();
+
+
+
+                 //waits for onConnected CallBack
         //----------------------------
 
         // Toast.makeText(this, toast, Toast.LENGTH_LONG).show();
@@ -128,6 +144,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     public void onCreate() {
 
         super.onCreate();
+
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.provider.Alarm.SERVICE_CREATED");
@@ -147,6 +164,17 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     public void onConnected(Bundle bundle) {
         //  myCurrentLoc= LocationServices.FusedLocationApi.getLastLocation(
         //         mGoogleApiClient);
+
+        Log.d("tag-->", "onConnected - isConnected ...............: " + mGoogleApiClient.isConnected());
+        //startLocationUpdates();
+
+        PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest,this);
+        Log.e("tag--", "Location update started ..............: ");
+
+
+        /*
+
         Toast.makeText(this, "connected", Toast.LENGTH_SHORT).show();
 
         //------------------------------
@@ -184,10 +212,13 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
             //System.out.println(me.getKey()+"  --  "+me.getValue());
         }
         Log.e("tag","Map size :"+map.size()+" || min_dist:"+min_distance);
-        if(min_distance < 1000 )
+        if(min_distance < 500 )
         {
             Toast.makeText(MyService.this,"You are within 1 km of "+notify_subject,Toast.LENGTH_LONG).show();
             stopSelf();
+            Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+            // Vibrate for 500 milliseconds
+            v.vibrate(500);
 
         }
         else {
@@ -214,13 +245,15 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                     System.currentTimeMillis() + next_alarm,
                     mNotificationReceiverPendingIntent);//UPGRADEABLE
             // Show Toast message
-            Toast.makeText(getApplicationContext(), "Single Alarm Set",
+            Toast.makeText(getApplicationContext(), " Alarm Set nearest :"+notify_subject+" || "+min_distance,
                     Toast.LENGTH_SHORT).show();
 
             //-------------------------------------
 
         }
         stopSelf();//calls destroy method
+
+        */
     }
 
     @Override
@@ -230,23 +263,88 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.e("tag  ", "Firing onLocationChanged..............................................");
+        // first of all stop location updates
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, (com.google.android.gms.location.LocationListener) this);
+        myCurrentLoc = location;
 
+
+
+        toast = myCurrentLoc.getLatitude() + " " + myCurrentLoc.getLongitude();
+        Toast.makeText(this, toast, Toast.LENGTH_SHORT).show();
+
+        //compare with every entry in Map
+        Set<Map.Entry<String,String>> se=map.entrySet();
+
+        for(Map.Entry<String,String> me : se)
+        {
+            String[] str = me.getValue().split(" ");
+            double latdest = Double.parseDouble(str[0]);
+            double longdest = Double.parseDouble(str[1]);
+            destLoc = new Location("Destination");
+            destLoc.setLatitude(latdest);
+            destLoc.setLongitude(longdest);
+            distance=myCurrentLoc.distanceTo(destLoc);
+            //Log.e("tagrugby","Subject:"+me.getKey()+" || lat: "+str[0]+"   lod: "+str[1]+"  || distance:"+distance);
+
+            if(min_distance > distance)
+            {
+                notify_subject=me.getKey();
+                min_distance=distance;
+            }
+
+            //System.out.println(me.getKey()+"  --  "+me.getValue());
+        }
+        Log.e("tag", "Map size :" + map.size() + " || min_dist:" + min_distance);
+        if(min_distance < 500 )
+        {
+            Toast.makeText(MyService.this,"You are within 1 km of "+notify_subject,Toast.LENGTH_LONG).show();
+            stopSelf();
+            Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+            // Vibrate for 500 milliseconds
+            v.vibrate(500);
+
+        }
+        else {
+            //--------------------- Repeat-------------
+
+
+            //--------------------- Repeat-------------
+
+            mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+            // Create an Intent to broadcast to the AlarmNotificationReceiver
+            mNotificationReceiverIntent = new Intent(MyService.this,
+                    AlarmNotificationReceiver.class);
+
+            // Create an PendingIntent that holds the NotificationReceiverIntent
+            mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
+                    MyService.this, 0, mNotificationReceiverIntent, 0);
+
+
+            // Set single alarm
+
+            next_alarm=distaceToTime(min_distance);
+            mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + next_alarm,
+                    mNotificationReceiverPendingIntent);//UPGRADEABLE
+            // Show Toast message
+            Toast.makeText(getApplicationContext(), " Alarm Set nearest :"+notify_subject+" || "+min_distance,
+                    Toast.LENGTH_SHORT).show();
+
+            //-------------------------------------
+
+        }
+        stopSelf();//calls destroy method
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
 
-    }
 
-    @Override
-    public void onProviderEnabled(String provider) {
 
-    }
 
-    @Override
-    public void onProviderDisabled(String provider) {
 
-    }
+
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -260,4 +358,16 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
     }
 
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(INTERVAL);
+        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    public void startLocationUpdates() {
+        PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest,this);
+        Log.e("tag--", "Location update started ..............: ");
+    }
 }
