@@ -217,7 +217,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
             Toast.makeText(getApplicationContext(), "Single Alarm Set",
                     Toast.LENGTH_SHORT).show();
 
-            //--------------------------------------
+            //-------------------------------------
 
         }
         stopSelf();//calls destroy method
