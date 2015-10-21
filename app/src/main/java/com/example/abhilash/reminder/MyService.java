@@ -155,9 +155,9 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         // LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest,this);
         myCurrentLoc= LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        mLocationManager =(LocationManager)this.getSystemService(LOCATION_SERVICE);
+       // mLocationManager =(LocationManager)this.getSystemService(LOCATION_SERVICE);
         // mLocationManager.requestLocationUpdates();
-        mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
+        //mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
         toast = myCurrentLoc.getLatitude() + " " + myCurrentLoc.getLongitude();
         Toast.makeText(this, toast, Toast.LENGTH_SHORT).show();
 

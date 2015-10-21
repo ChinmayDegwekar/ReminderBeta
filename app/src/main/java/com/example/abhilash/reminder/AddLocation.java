@@ -2,6 +2,7 @@ package com.example.abhilash.reminder;
 
 import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -33,9 +34,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class AddLocation extends AppCompatActivity implements
         LocationListener,
@@ -45,8 +50,7 @@ public class AddLocation extends AppCompatActivity implements
 
     private static final long INTERVAL = 1000 * 10;
     private static final long FASTEST_INTERVAL = 1000 * 5;
-    private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
-            new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
+    private static LatLngBounds bounds;
     private static final String TAG = "LocationActivity";
     GoogleApiClient googleApiClient;
     GoogleMap gmap = null;
@@ -60,6 +64,7 @@ public class AddLocation extends AppCompatActivity implements
     private PlaceAutocompleteAdapter mAdapter;
     private boolean mapReady = false;
     private AutoCompleteTextView mAutocompleteView;
+    MarkerOptions dragableMarker;
     private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback
             = new ResultCallback<PlaceBuffer>() {
         @Override
@@ -147,7 +152,7 @@ public class AddLocation extends AppCompatActivity implements
         mAutocompleteView = (AutoCompleteTextView)
                 findViewById(R.id.autoCompleteTextView);
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
-        mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUNDS_GREATER_SYDNEY,
+        mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, bounds,
                 null);
         mAutocompleteView.setAdapter(mAdapter);
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
@@ -165,7 +170,9 @@ public class AddLocation extends AppCompatActivity implements
                     Intent goBack = new Intent(AddLocation.this,MainActivity.class);
                     goBack.putExtras(basket);
                     startActivity(goBack);*/
-                    startActivity(new Intent(AddLocation.this,Database.class));
+                    Intent intent = new Intent(AddLocation.this,Database.class);
+                    //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent );
                 }
                 else{
                     Toast.makeText(AddLocation.this,"Select toh kar",Toast.LENGTH_SHORT);
@@ -200,6 +207,8 @@ public class AddLocation extends AppCompatActivity implements
         gmap = googleMap;
         //LatLng newYork = new LatLng(40.7484, -73.9857);
         FusedLocationProviderApi fusedLocationProviderApi = LocationServices.FusedLocationApi;
+        mCurrentLocation = fusedLocationProviderApi.getLastLocation(googleApiClient);
+        gmap.setMyLocationEnabled(true);
 
     }
 
@@ -234,6 +243,8 @@ public class AddLocation extends AppCompatActivity implements
         if (mapReady && flag) {
             flag = false;
             LatLng current = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+            bounds = new LatLngBounds(new LatLng(current.latitude-15.0,current.longitude-15),
+                    new LatLng(current.latitude+15.0,current.longitude+15));
             CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
             gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
         }
@@ -276,4 +287,42 @@ public class AddLocation extends AppCompatActivity implements
         Log.e(TAG, "Location update stopped .......................");
     }
 
+    public void dropPin(View view){
+
+        dragableMarker = new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude()))
+        .draggable(true);
+        gmap.addMarker(dragableMarker);
+        //GoogleMap myMap =mapFragment.getMap();
+
+        gmap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+
+
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+                LatLng dragedTo = marker.getPosition();
+                lat = dragedTo.latitude;
+                lng = dragedTo.longitude;
+                gotLoc=true;
+            }
+        });
+
+    }
+
+    public void gotoCurrent(View view){
+        LatLng current = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        lat=mCurrentLocation.getLatitude();
+        lng=mCurrentLocation.getLongitude();
+        gotLoc=true;
+        CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
+        gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
+    }
 }

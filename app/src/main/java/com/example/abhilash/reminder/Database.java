@@ -211,6 +211,14 @@ public class Database extends Activity {
 
     }
 
+   // @Override
+    //public void onBackPressed()
+    //{
+        // code here to show dialog
+    //    super.onBackPressed();
+        //startActivity(new Intent(this,MainActivity.class));// optional depending on your needs
+    //}
+
 }
 
 

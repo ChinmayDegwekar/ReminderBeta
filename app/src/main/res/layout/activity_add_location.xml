@@ -10,6 +10,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
+    <AutoCompleteTextView
+        android:id="@+id/autoCompleteTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="30dp"
+        android:layout_weight="1"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:hint="Enter Place" />
     <fragment
         android:id="@+id/fragment"
         android:name="com.google.android.gms.maps.MapFragment"
@@ -19,14 +28,7 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true">
 
-        <AutoCompleteTextView
-            android:id="@+id/autoCompleteTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="30dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:hint="Enter Place" />
+
 
 
         <TextView
@@ -38,13 +40,36 @@
             android:layout_below="@id/autoCompleteTextView"
             android:hint="Location"
             android:padding="15dp" />
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Current"
+            android:id="@+id/btCurrent"
+            android:onClick="gotoCurrent"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            />
     </fragment>
-    <Button
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:id="@+id/selectBut"
-        android:layout_below="@id/fragment"
-        android:text="Select"/>
+        android:orientation="horizontal"
+        android:layout_weight="1">
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Drop Pin"
+            android:onClick="dropPin"
+            android:id="@+id/DropBt"
+            android:layout_weight="1"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/selectBut"
+            android:layout_below="@id/fragment"
+            android:text="Select"/>
+    </LinearLayout>
+
 
 </LinearLayout>
