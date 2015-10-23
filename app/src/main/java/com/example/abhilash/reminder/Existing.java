@@ -47,7 +47,7 @@ public class Existing extends Activity {
    /* Create a Table in the Database. */
         myDB2.execSQL("CREATE TABLE IF NOT EXISTS "
                 + "myTable"
-                + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , Date VARCHAR , Lat NUMBER , Lon NUMBER , Time VARCHAR );");
+                + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , SDate VARCHAR , EDate VARCHAR , Lat NUMBER , Lon NUMBER , Time VARCHAR );");
         Cursor c = myDB2.rawQuery("SELECT * FROM " + "myTable", null);
 
         int Column1 = c.getColumnIndex("Subject");
@@ -55,7 +55,8 @@ public class Existing extends Activity {
         int Column3 = c.getColumnIndex("Location");
         int Column4 = c.getColumnIndex("Lon");
         int Column5 = c.getColumnIndex("Lat");
-        int Column6 = c.getColumnIndex("Date");
+        int Column6 = c.getColumnIndex("SDate");
+        int Column8 = c.getColumnIndex("EDate");
         int Column7 = c.getColumnIndex("Time");
         // Check if our result was valid.
         c.moveToFirst();
@@ -73,8 +74,12 @@ public class Existing extends Activity {
                     data = data + "Longitude:" + Lon + "\n";
                     double Lat = c.getDouble(Column5);
                     data = data + "Latitude:" + Lat + "\n";
-                    String date = c.getString(Column6);
-                    data = data + "Date:" + date + "\n";
+                    String sdate = c.getString(Column6);
+                    data = data + "Date:" + sdate + "\n";
+
+                    String edate = c.getString(Column8);
+                    data = data + "Date:" + edate + "\n";
+
                     String time = c.getString(Column7);
                     data = data + "Time:" + time + "\n";
                     details.add(data);

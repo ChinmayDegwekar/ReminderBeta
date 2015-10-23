@@ -1,6 +1,8 @@
 package com.example.abhilash.reminder;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,7 +39,9 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -163,16 +167,9 @@ public class AddLocation extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 if(gotLoc) {
-                    /*Bundle basket = new Bundle();
-                    basket.putDouble("lat", lat);
-                    basket.putDouble("lng", lng);
-                    basket.putString("add", address);
-                    Intent goBack = new Intent(AddLocation.this,MainActivity.class);
-                    goBack.putExtras(basket);
-                    startActivity(goBack);*/
+
                     Intent intent = new Intent(AddLocation.this,Database.class);
-                    //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent );
+                     startActivity(intent );
                 }
                 else{
                     Toast.makeText(AddLocation.this,"Select toh kar",Toast.LENGTH_SHORT);
@@ -321,6 +318,54 @@ public class AddLocation extends AppCompatActivity implements
         LatLng current = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         lat=mCurrentLocation.getLatitude();
         lng=mCurrentLocation.getLongitude();
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        //-----------------------------
+        List<Address> addresses = null;
+
+        try {
+            addresses = geocoder.getFromLocation(
+                    mCurrentLocation.getLatitude(),
+                    mCurrentLocation.getLongitude(),
+                    // In this sample, get just a single address.
+                    1);
+        } catch (IOException ioException) {
+            // Catch network or other I/O problems.
+            //errorMessage = getString(R.string.service_not_available);
+            Log.e(TAG, "errorMessage", ioException);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            // Catch invalid latitude or longitude values.
+           // errorMessage = getString(R.string.invalid_lat_long_used);
+            Log.e(TAG, "error" + ". " +
+                    "Latitude = " + mCurrentLocation.getLatitude() +
+                    ", Longitude = " +
+                    mCurrentLocation.getLongitude(), illegalArgumentException);
+        }
+
+        // Handle case where no address was found.
+        if(address != null || addresses.size()!=0)
+        {
+            Address address = addresses.get(0);
+            ArrayList<String> addressFragments = new ArrayList<String>();
+
+            // Fetch the address lines using getAddressLine,
+            // join them, and send them to the thread.
+            for(int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+                addressFragments.add(address.getAddressLine(i));
+            }
+
+            String locToAddress="";
+              for(String s:addressFragments)
+              {
+                  locToAddress+=s+" ,";
+              }
+            AddLocation.address = locToAddress;
+        }
+
+
+        //----------------------------
+
+
+
         gotLoc=true;
         CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
         gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);

@@ -51,7 +51,7 @@ public class Database extends Activity {
    /* Create a Table in the Database. */
             myDB.execSQL("CREATE TABLE IF NOT EXISTS "
                     + TableName
-                    + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , Date VARCHAR , Lat NUMBER , Lon NUMBER , Time VARCHAR );");
+                    + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , SDate VARCHAR , EDate VARCHAR , Lat NUMBER , Lon NUMBER , Time VARCHAR );");
 
 
             ContentValues values = new ContentValues();
@@ -61,7 +61,8 @@ public class Database extends Activity {
             Log.e("TagRugby", AddLocation.address + "address");
             values.put("Lon", AddLocation.lng);
             values.put("Lat", AddLocation.lat);
-            values.put("Date", MainActivity.date);
+            values.put("SDate", MainActivity.sdate);
+            values.put("EDate", MainActivity.edate);
             values.put("time", MainActivity.time);
             myDB.insert("myTable", null, values);
 
@@ -78,7 +79,8 @@ public class Database extends Activity {
             int Column3 = c.getColumnIndex("Location");
             int Column4 = c.getColumnIndex("Lon");
             int Column5 = c.getColumnIndex("Lat");
-            int Column6 = c.getColumnIndex("Date");
+            int Column6 = c.getColumnIndex("SDate");
+            int Column8 = c.getColumnIndex("EDate");
             int Column7 = c.getColumnIndex("Time");
             // Check if our result was valid.
             c.moveToFirst();
@@ -95,8 +97,12 @@ public class Database extends Activity {
                     data = data + "Longitude:" + Lon + "\n";
                     double Lat = c.getDouble(Column5);
                     data = data + "Latitude:" + Lat + "\n";
-                    String date = c.getString(Column6);
-                    data = data + "Date:" + date + "\n";
+                    String sdate = c.getString(Column6);
+                    data = data + "Start Date:" + sdate + "\n";
+
+                    String edate = c.getString(Column8);
+                    data = data + "End Date:" + edate + "\n";
+
                     String time = c.getString(Column7);
                     data = data + "Time:" + time + "\n";
                     details.add(data);

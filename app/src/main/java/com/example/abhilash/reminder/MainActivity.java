@@ -19,7 +19,8 @@ public class MainActivity extends AppCompatActivity {
     public static String sub;
     public static String des;
     public static String loc;
-    public static String date;
+    public static String sdate;
+    public static String edate;
     public static String time;
 
     public static double Lat = 12.09;
@@ -50,33 +51,15 @@ public class MainActivity extends AppCompatActivity {
         des = text2.getText().toString();
 
 
-        DatePicker dp =(DatePicker) findViewById(R.id.datePicker);
+        DatePicker dp1 =(DatePicker) findViewById(R.id.datePicker1);
+        sdate = String.valueOf(dp1.getYear())+"-"+String.valueOf(dp1.getMonth()+1)+"-"+String.valueOf(dp1.getDayOfMonth());
 
-        date = String.valueOf(dp.getYear())+"-"+String.valueOf(dp.getMonth()+1)+"-"+String.valueOf(dp.getDayOfMonth());
+        DatePicker dp2 =(DatePicker) findViewById(R.id.datePicker2);
+        edate = String.valueOf(dp2.getYear())+"-"+String.valueOf(dp2.getMonth()+1)+"-"+String.valueOf(dp2.getDayOfMonth());
 
         TimePicker tp =(TimePicker) findViewById(R.id.timePicker);
         time = tp.getCurrentHour()+":"+tp.getCurrentMinute();
         startActivity(new Intent(MainActivity.this, AddLocation.class));
-    }
-
-    public void saveReminder(View view) throws IOException {
-
-
-        EditText text1 = (EditText) findViewById(R.id.subject);
-        sub = text1.getText().toString();
-        EditText text2 = (EditText) findViewById(R.id.description);
-        des = text2.getText().toString();
-
-
-        DatePicker dp =(DatePicker) findViewById(R.id.datePicker);
-
-        date = String.valueOf(dp.getYear())+"-"+String.valueOf(dp.getMonth()+1)+"-"+String.valueOf(dp.getDayOfMonth());
-
-        TimePicker tp =(TimePicker) findViewById(R.id.timePicker);
-        time = tp.getCurrentHour()+":"+tp.getCurrentMinute();
-
-        startActivity(new Intent(MainActivity.this, Database.class));
-        //startService();
     }
 
     public void viewReminders(View view)

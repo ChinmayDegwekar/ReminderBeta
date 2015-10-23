@@ -163,7 +163,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 }
                 Log.e("tag", "Map size :" + map.size() + " || min_dist:" + min_distance);
                 if (min_distance < 500) {
-                    Toast.makeText(MyService.this, "You are within 1 km of " + notify_subject, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MyService.this, "You are within 500 m of " + notify_subject, Toast.LENGTH_LONG).show();
                     stopSelf();
                     Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
                     // Vibrate for 500 milliseconds
