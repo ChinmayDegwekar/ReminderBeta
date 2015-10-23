@@ -1,5 +1,9 @@
 
 //this is working : the best
+
+
+// Usally :time required for service to complete work: 1 SEC
+
 package com.example.abhilash.reminder;
 
 /**
@@ -31,6 +35,7 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 
 import java.util.HashMap;
@@ -38,7 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MyService extends Service implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener
+        GoogleApiClient.OnConnectionFailedListener//, com.google.android.gms.location.LocationListener
 {
     @Override
     public void onStart(Intent intent, int startId) {
@@ -46,16 +51,16 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     }
 
     //NotificationManager nm;
-    String toast="not connected yet";
+    String toast = "not connected yet";
     GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
     Location myCurrentLoc;
     Location destLoc;
-    double distance=0;
-    double min_distance=Double.MAX_VALUE;
-    long next_alarm=500;
+    double distance = 0;
+    double min_distance = Double.MAX_VALUE;
+    long next_alarm = 500;
     String notify_subject;
-    LocationManager mLocationManager;
+    LocationManager locationManager;
     //------------repeat--------------------
 
     private AlarmManager mAlarmManager;
@@ -75,7 +80,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
     SharedPreferences someData;
     SharedPreferences.Editor editor;
-    HashMap<String,String> map = new HashMap<String,String>();
+    HashMap<String, String> map = new HashMap<String, String>();
 
 
     //--------------------------------------
@@ -95,27 +100,24 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
         //version 1.0----------------
 
-        someData = getSharedPreferences("SubLatLng",0);
+        someData = getSharedPreferences("SubLatLng", 0);
         editor = someData.edit();
-        map = (HashMap<String, String>)someData.getAll();
+        map = (HashMap<String, String>) someData.getAll();
 
-        Set<Map.Entry<String,String>> se=map.entrySet();
+        Set<Map.Entry<String, String>> se = map.entrySet();
         //min_distance=0;
-        Log.e("In MyService","Map size:"+map.size());
-       for(Map.Entry<String,String> me : se)
-        {
+        Log.e("In MyService", "Map size:" + map.size());
+        for (Map.Entry<String, String> me : se) {
 
-            if(me.getValue().contains("-"))
-            {
+            if (me.getValue().contains("-")) {
                 editor.remove(me.getKey());
                 editor.apply();
                 editor.commit();
             }
 
-            Log.e("In MyService :",me.getKey()+" || "+me.getValue());
+            Log.e("In MyService :", me.getKey() + " || " + me.getValue());
 
         }
-
 
 
         //====================================================
@@ -126,12 +128,94 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 .addOnConnectionFailedListener(this)
                 .build();
         mGoogleApiClient.connect();
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-        createLocationRequest();
+        //createLocationRequest();
+        LocationListener locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+                //tvCurrentPos.setText("changedLoc :" + location.getLatitude() + " " + location.getLongitude());
+                locationManager.removeUpdates(this);
+                myCurrentLoc = location;
+
+                toast = myCurrentLoc.getLatitude() + " " + myCurrentLoc.getLongitude();
+                Toast.makeText(MyService.this, toast, Toast.LENGTH_SHORT).show();
+
+                //compare with every entry in Map
+                Set<Map.Entry<String, String>> se = map.entrySet();
+
+                for (Map.Entry<String, String> me : se) {
+                    String[] str = me.getValue().split(" ");
+                    double latdest = Double.parseDouble(str[0]);
+                    double longdest = Double.parseDouble(str[1]);
+                    destLoc = new Location("Destination");
+                    destLoc.setLatitude(latdest);
+                    destLoc.setLongitude(longdest);
+                    distance = myCurrentLoc.distanceTo(destLoc);
+                    //Log.e("tagrugby","Subject:"+me.getKey()+" || lat: "+str[0]+"   lod: "+str[1]+"  || distance:"+distance);
+
+                    if (min_distance > distance) {
+                        notify_subject = me.getKey();
+                        min_distance = distance;
+                    }
+
+                    //System.out.println(me.getKey()+"  --  "+me.getValue());
+                }
+                Log.e("tag", "Map size :" + map.size() + " || min_dist:" + min_distance);
+                if (min_distance < 500) {
+                    Toast.makeText(MyService.this, "You are within 1 km of " + notify_subject, Toast.LENGTH_LONG).show();
+                    stopSelf();
+                    Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
+                    // Vibrate for 500 milliseconds
+                    v.vibrate(500);
+
+                } else {
+                    //--------------------- Repeat-------------
 
 
+                    //--------------------- Repeat-------------
 
-                 //waits for onConnected CallBack
+                    mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+                    // Create an Intent to broadcast to the AlarmNotificationReceiver
+                    mNotificationReceiverIntent = new Intent(MyService.this,
+                            AlarmNotificationReceiver.class);
+
+                    // Create an PendingIntent that holds the NotificationReceiverIntent
+                    mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
+                            MyService.this, 0, mNotificationReceiverIntent, 0);
+
+
+                    // Set single alarm
+
+                    next_alarm = distaceToTime(min_distance);
+                    mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+                            System.currentTimeMillis() + next_alarm,
+                            mNotificationReceiverPendingIntent);//UPGRADEABLE
+                    // Show Toast message
+                    Toast.makeText(getApplicationContext(), " Alarm Set nearest :" + notify_subject + " || " + min_distance,
+                            Toast.LENGTH_SHORT).show();
+
+                    //-------------------------------------
+
+                }
+                stopSelf();//calls destroy method
+            }
+
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+
+
+        //waits for onConnected CallBack
         //----------------------------
 
         // Toast.makeText(this, toast, Toast.LENGTH_LONG).show();
@@ -148,15 +232,15 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.provider.Alarm.SERVICE_CREATED");
-      //  registerReceiver(mybroadcast, filter);
-          Log.e("tag","BRciver registered");
+        //  registerReceiver(mybroadcast, filter);
+        Log.e("tag", "BRciver registered");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         mGoogleApiClient.disconnect();
-        Toast.makeText(this, "Service Destroyed: "+toast, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_LONG).show();
 
     }
 
@@ -168,8 +252,8 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         Log.d("tag-->", "onConnected - isConnected ...............: " + mGoogleApiClient.isConnected());
         //startLocationUpdates();
 
-        PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest,this);
+        //  PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(
+        //        mGoogleApiClient, mLocationRequest,this);
         Log.e("tag--", "Location update started ..............: ");
 
 
@@ -261,7 +345,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
     }
 
-    @Override
+    /* @Override
     public void onLocationChanged(Location location) {
         Log.e("tag  ", "Firing onLocationChanged..............................................");
         // first of all stop location updates
@@ -338,12 +422,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         }
         stopSelf();//calls destroy method
     }
-
-
-
-
-
-
+    */
 
 
     @Override
@@ -351,8 +430,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
     }
 
-    public long distaceToTime(double distance)
-    {
+    public long distaceToTime(double distance) {
         return 30000;
 
 
@@ -365,9 +443,30 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    public void startLocationUpdates() {
+    /*public void startLocationUpdates() {
         PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest,this);
+                mGoogleApiClient, mLocationRequest, this);
         Log.e("tag--", "Location update started ..............: ");
+    }*/
+
+
+    public Location getLocation() {
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager != null) {
+            Location lastKnownLocationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLocationGPS != null) {
+                //return lastKnownLocationGPS;
+                return lastKnownLocationGPS;
+            } else {
+                Location loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+                System.out.println("1::" + loc);//----getting null over here
+                System.out.println("2::" + loc.getLatitude());
+                return loc;
+            }
+        } else {
+            return null;
+        }
+
     }
 }

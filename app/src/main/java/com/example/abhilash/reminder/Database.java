@@ -211,13 +211,19 @@ public class Database extends Activity {
 
     }
 
-   // @Override
-    //public void onBackPressed()
-    //{
-        // code here to show dialog
-    //    super.onBackPressed();
-        //startActivity(new Intent(this,MainActivity.class));// optional depending on your needs
-    //}
+
+    public void onBackPressed()
+    {
+    //     code here to show dialog
+        super.onBackPressed();
+
+
+        Intent i = new Intent(Database.this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.putExtra("EXIT", true);
+        startActivity(i);
+       // startActivity(new Intent(this,MainActivity.class));// optional depending on your needs
+    }
 
 }
 

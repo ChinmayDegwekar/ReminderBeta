@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.e("App killed", "App destroyed start service");
-        startService(new Intent(this,MyService.class));
+        startService(new Intent(this, MyService.class));
     }
 
     @Override
