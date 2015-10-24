@@ -107,7 +107,7 @@ public class Database extends Activity {
                     data = data + "Time:" + time + "\n";
                     details.add(data);
 
-                    editor.putString(subject,Lat+" "+Lon);
+                    editor.putString(subject,Lat+" "+Lon+" "+sdate+" "+edate+" "+time);
                     //Des.add(desc);
                     //Loc.add(location);
 

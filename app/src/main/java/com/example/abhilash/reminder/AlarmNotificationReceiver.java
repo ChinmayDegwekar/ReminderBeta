@@ -3,6 +3,7 @@ package com.example.abhilash.reminder;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -10,6 +11,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.PowerManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -30,6 +32,11 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
     // Notification Action Elements
     private Intent mNotificationIntent;
     private PendingIntent mContentIntent;
+
+
+    SharedPreferences someData;
+    SharedPreferences.Editor editor;
+    HashMap<String, String> map = new HashMap<String, String>();
 
     // Notification Sound and Vibration on Arrival
     //   private final Uri soundURI = Uri
@@ -55,17 +62,20 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
         //context.startActivity(i);
 
         //--------------------------------------
+        someData = context.getSharedPreferences("SubLatLng",0);
+        editor = someData.edit();
+        map = (HashMap<String, String>) someData.getAll();
 
 
         //context.startService(background);
         //context.startService(new Intent(context, MyService.class));
-
-        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                "MyWakelockTag");
-        wakeLock.acquire(5000);
-        context.startService(new Intent(context, MyService.class));
-
+        if(map.size()!=0) {
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    "MyWakelockTag");
+            wakeLock.acquire(5000);
+            context.startService(new Intent(context, MyService.class));
+        }
 
         //2nd    context.startService(new Intent(context, LocationService.class));
         // no need to stop .-> stopSelf() used

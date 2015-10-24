@@ -70,6 +70,7 @@ public class AddLocation extends AppCompatActivity implements
     private AutoCompleteTextView mAutocompleteView;
     Location markerLocation = new Location("marker Loc");
     MarkerOptions dragableMarker;
+    boolean marker_exists=false;
     private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback
             = new ResultCallback<PlaceBuffer>() {
         @Override
@@ -286,12 +287,13 @@ public class AddLocation extends AppCompatActivity implements
 
     public void dropPin(View view) {
 
-
-        dragableMarker = new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
-                .draggable(true);
-        gmap.addMarker(dragableMarker);
-        //GoogleMap myMap =mapFragment.getMap();
-
+        if(!marker_exists ) {
+            dragableMarker = new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                    .draggable(true);
+            marker_exists=true;
+            gmap.addMarker(dragableMarker);
+            //GoogleMap myMap =mapFragment.getMap();
+        }
         gmap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
@@ -337,6 +339,7 @@ public class AddLocation extends AppCompatActivity implements
 
         gotLoc = true;
         CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
+
         gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
     }
 

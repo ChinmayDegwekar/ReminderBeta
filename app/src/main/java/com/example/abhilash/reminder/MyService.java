@@ -161,8 +161,11 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
                 for (Map.Entry<String, String> me : se) {
                     String[] str = me.getValue().split(" ");
+
+
                     double latdest = Double.parseDouble(str[0]);
                     double longdest = Double.parseDouble(str[1]);
+
                     destLoc = new Location("Destination");
                     destLoc.setLatitude(latdest);
                     destLoc.setLongitude(longdest);

@@ -1,6 +1,7 @@
 package com.example.abhilash.reminder;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TimePicker;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -25,10 +27,23 @@ public class MainActivity extends AppCompatActivity {
 
     public static double Lat = 12.09;
     public static double Lon= 99.76;
+
+    SharedPreferences someData;
+    SharedPreferences.Editor editor;
+    HashMap<String, String> map = new HashMap<String, String>();
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        someData = getSharedPreferences("SubLatLng",0);
+        editor = someData.edit();
+        map = (HashMap<String, String>) someData.getAll();
+
+
     }
 
     @Override
@@ -71,7 +86,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("App killed", "App destroyed start service");
+
+        Log.e("App killed", "App destroyed start service :"+map.size());
+        if(map.size()!=0)
         startService(new Intent(this, MyService.class));
     }
 
