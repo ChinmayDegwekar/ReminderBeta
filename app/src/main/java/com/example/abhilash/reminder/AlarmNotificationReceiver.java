@@ -11,6 +11,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.PowerManager;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -56,7 +58,15 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
 
 
         //context.startService(background);
+        //context.startService(new Intent(context, MyService.class));
+
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "MyWakelockTag");
+        wakeLock.acquire(5000);
         context.startService(new Intent(context, MyService.class));
+
+
         //2nd    context.startService(new Intent(context, LocationService.class));
         // no need to stop .-> stopSelf() used
         //context.stopService(new Intent(context, MyService.class));

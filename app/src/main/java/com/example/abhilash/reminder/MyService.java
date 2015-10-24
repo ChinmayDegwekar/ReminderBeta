@@ -24,6 +24,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
 import android.widget.TextView;
@@ -50,6 +51,9 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         super.onStart(intent, startId);
     }
 
+
+
+    Intent in;
     //NotificationManager nm;
     String toast = "not connected yet";
     GoogleApiClient mGoogleApiClient;
@@ -95,7 +99,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, int flags, int startId) {
         // Let it continue running until it is stopped.
 
         //version 1.0----------------
@@ -199,6 +203,12 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                     //-------------------------------------
 
                 }
+
+           //     PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            //    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+             //           "MyWakelockTag");
+              //  wakeLock.release();
+
                 stopSelf();//calls destroy method
             }
 
@@ -241,9 +251,11 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         super.onDestroy();
         mGoogleApiClient.disconnect();
         Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_LONG).show();
-        Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
+
+
+       // Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
         // Vibrate for 500 milliseconds
-        v.vibrate(500);
+       // v.vibrate(500);
 
 
     }
