@@ -241,6 +241,10 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         super.onDestroy();
         mGoogleApiClient.disconnect();
         Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_LONG).show();
+        Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 500 milliseconds
+        v.vibrate(500);
+
 
     }
 
