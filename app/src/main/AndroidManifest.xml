@@ -47,7 +47,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <receiver android:name=".AlarmNotificationReceiver" />
+        <receiver android:name=".AlarmNotificationReceiver" >
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        </receiver>
+
         <service android:enabled="true" android:name=".MyService"/>
 
 
@@ -58,4 +64,5 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>
