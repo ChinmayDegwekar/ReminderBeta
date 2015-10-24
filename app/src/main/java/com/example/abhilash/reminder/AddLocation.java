@@ -68,6 +68,7 @@ public class AddLocation extends AppCompatActivity implements
     private PlaceAutocompleteAdapter mAdapter;
     private boolean mapReady = false;
     private AutoCompleteTextView mAutocompleteView;
+    Location markerLocation = new Location("marker Loc");
     MarkerOptions dragableMarker;
     private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback
             = new ResultCallback<PlaceBuffer>() {
@@ -86,7 +87,7 @@ public class AddLocation extends AppCompatActivity implements
             lng = srchRes.longitude;
 
             address = (String) place.getAddress();
-            Log.e("Address",address+"yaha select kiya");
+            Log.e("Address", address + "yaha select kiya");
             gotLoc = true;
             CameraPosition target = CameraPosition.builder().target(srchRes).zoom(17).build();
             gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
@@ -166,13 +167,12 @@ public class AddLocation extends AppCompatActivity implements
         select.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(gotLoc) {
+                if (gotLoc) {
 
-                    Intent intent = new Intent(AddLocation.this,Database.class);
-                     startActivity(intent );
-                }
-                else{
-                    Toast.makeText(AddLocation.this,"Select toh kar",Toast.LENGTH_SHORT);
+                    Intent intent = new Intent(AddLocation.this, Database.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(AddLocation.this, "Select toh kar", Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -240,8 +240,8 @@ public class AddLocation extends AppCompatActivity implements
         if (mapReady && flag) {
             flag = false;
             LatLng current = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-            bounds = new LatLngBounds(new LatLng(current.latitude-15.0,current.longitude-15),
-                    new LatLng(current.latitude+15.0,current.longitude+15));
+            bounds = new LatLngBounds(new LatLng(current.latitude - 15.0, current.longitude - 15),
+                    new LatLng(current.latitude + 15.0, current.longitude + 15));
             CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
             gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
         }
@@ -284,10 +284,11 @@ public class AddLocation extends AppCompatActivity implements
         Log.e(TAG, "Location update stopped .......................");
     }
 
-    public void dropPin(View view){
+    public void dropPin(View view) {
 
-        dragableMarker = new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude()))
-        .draggable(true);
+
+        dragableMarker = new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                .draggable(true);
         gmap.addMarker(dragableMarker);
         //GoogleMap myMap =mapFragment.getMap();
 
@@ -308,24 +309,48 @@ public class AddLocation extends AppCompatActivity implements
                 LatLng dragedTo = marker.getPosition();
                 lat = dragedTo.latitude;
                 lng = dragedTo.longitude;
-                gotLoc=true;
+                markerLocation.setLatitude(dragedTo.latitude);
+                markerLocation.setLongitude(dragedTo.longitude);
+                String s=latLongToAddress(markerLocation);
+                AddLocation.address = s;
+                mAutocompleteView.setText(s);
+                gotLoc = true;
             }
         });
 
     }
 
-    public void gotoCurrent(View view){
+    public void gotoCurrent(View view) {
         LatLng current = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        lat=mCurrentLocation.getLatitude();
-        lng=mCurrentLocation.getLongitude();
+        lat = mCurrentLocation.getLatitude();
+        lng = mCurrentLocation.getLongitude();
+       Location temp = new Location("temp");
+        temp.setLongitude(mCurrentLocation.getLongitude());
+        temp.setLatitude(mCurrentLocation.getLatitude());
+            AddLocation.address = latLongToAddress(new Location(temp));
+
+         mAutocompleteView.setText(AddLocation.address);
+
+
+        //----------------------------
+
+
+        gotLoc = true;
+        CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
+        gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
+    }
+
+    public String latLongToAddress(Location location) {
+        String locToAddress = "";
+
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         //-----------------------------
         List<Address> addresses = null;
 
         try {
             addresses = geocoder.getFromLocation(
-                    mCurrentLocation.getLatitude(),
-                    mCurrentLocation.getLongitude(),
+                    location.getLatitude(),
+                    location.getLongitude(),
                     // In this sample, get just a single address.
                     1);
         } catch (IOException ioException) {
@@ -334,40 +359,33 @@ public class AddLocation extends AppCompatActivity implements
             Log.e(TAG, "errorMessage", ioException);
         } catch (IllegalArgumentException illegalArgumentException) {
             // Catch invalid latitude or longitude values.
-           // errorMessage = getString(R.string.invalid_lat_long_used);
+            // errorMessage = getString(R.string.invalid_lat_long_used);
             Log.e(TAG, "error" + ". " +
                     "Latitude = " + mCurrentLocation.getLatitude() +
                     ", Longitude = " +
-                    mCurrentLocation.getLongitude(), illegalArgumentException);
+                    location.getLongitude(), illegalArgumentException);
         }
 
         // Handle case where no address was found.
-        if(address != null || addresses.size()!=0)
-        {
+        if (addresses != null || addresses.size() != 0) {
             Address address = addresses.get(0);
             ArrayList<String> addressFragments = new ArrayList<String>();
 
             // Fetch the address lines using getAddressLine,
             // join them, and send them to the thread.
-            for(int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+            for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
                 addressFragments.add(address.getAddressLine(i));
             }
 
-            String locToAddress="";
-              for(String s:addressFragments)
-              {
-                  locToAddress+=s+" ,";
-              }
-            AddLocation.address = locToAddress;
-        }
+            for (String s : addressFragments) {
+                locToAddress += s + " ,";
+            }
 
 
-        //----------------------------
+        } else
+            locToAddress = " Address not available";
 
 
-
-        gotLoc=true;
-        CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
-        gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
+        return locToAddress;
     }
 }

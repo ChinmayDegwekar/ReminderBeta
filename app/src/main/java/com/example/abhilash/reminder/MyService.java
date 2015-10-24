@@ -10,6 +10,7 @@ package com.example.abhilash.reminder;
  * Created by CHINMAY on 12-10-2015.
  */
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -39,6 +40,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -54,7 +56,16 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
 
     Intent in;
-    //NotificationManager nm;
+    int test;
+    ArrayList<String> notify_subjects=new ArrayList<String>();
+
+
+    //-------------
+    NotificationManager nm;
+    static final int notification_id = 136432;
+    PendingIntent pi;
+    private final long[] mVibratePattern = { 0, 500 ,500 ,500,500,500 };
+    //------------------------
     String toast = "not connected yet";
     GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
@@ -123,7 +134,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
         }
 
-
+          test=5;
         //====================================================
         // setup google api client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -158,6 +169,12 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                     distance = myCurrentLoc.distanceTo(destLoc);
                     //Log.e("tagrugby","Subject:"+me.getKey()+" || lat: "+str[0]+"   lod: "+str[1]+"  || distance:"+distance);
 
+                    if(distance < 500)
+                    {
+                        notify_subjects.add(me.getKey());
+                    }
+
+
                     if (min_distance > distance) {
                         notify_subject = me.getKey();
                         min_distance = distance;
@@ -168,10 +185,44 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 Log.e("tag", "Map size :" + map.size() + " || min_dist:" + min_distance);
                 if (min_distance < 500) {
                     Toast.makeText(MyService.this, "You are within 500 m of " + notify_subject, Toast.LENGTH_LONG).show();
-                    stopSelf();
                     Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
-                    // Vibrate for 500 milliseconds
-                    v.vibrate(500);
+                    // Vibrate for 500 milliseconds 5 times
+                    v.vibrate(mVibratePattern, 5 );
+
+                    //----------------------------------------------------------------
+
+                           nm=(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    Intent not_intent = new Intent(MyService.this,Existing.class);
+
+                    int i=notify_subjects.size();
+                    do {
+                        nm.cancel(notification_id+i);
+
+                        test--;
+                        if(test<=0)break;
+                        pi = PendingIntent.getActivity(MyService.this, 0, not_intent, 0);
+
+                        String body = notify_subjects.get(i-1);
+                        String title = "You are within 500 mts to this";
+
+                        Notification n = new Notification(R.drawable.common_signin_btn_icon_focus_dark, body
+                                , System.currentTimeMillis());
+                        n.setLatestEventInfo(MyService.this, body, title, pi);
+                        n.flags |= Notification.FLAG_AUTO_CANCEL;
+                        n.defaults = Notification.DEFAULT_ALL;
+                        nm.notify(notification_id+i, n);
+                        i--;
+                    }while(i>0);
+
+
+
+
+
+                    //------------------------------------------------------------------
+
+
+                    stopSelf();
+
 
                 } else {
                     //--------------------- Repeat-------------
