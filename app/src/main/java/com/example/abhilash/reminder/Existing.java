@@ -15,7 +15,10 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -32,6 +35,7 @@ public class Existing extends Activity {
     SharedPreferences.Editor editor;
 
 
+    HashMap<String, String> map = new HashMap<String, String>();
 
 
     public void onCreate (Bundle savedInstanceState) {
@@ -39,15 +43,16 @@ public class Existing extends Activity {
         myDB2 = this.openOrCreateDatabase("ReminderDatabase", MODE_PRIVATE, null);
 
 
-        someData = getSharedPreferences("SubLatLng",0);
+        someData = getSharedPreferences("SubLatLng", 0);
         editor = someData.edit();
+        map = (HashMap<String, String>) someData.getAll();
 
 
 
    /* Create a Table in the Database. */
         myDB2.execSQL("CREATE TABLE IF NOT EXISTS "
                 + "myTable"
-                + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , SDate VARCHAR , EDate VARCHAR , Lat NUMBER , Lon NUMBER , Time VARCHAR );");
+                + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , SDate VARCHAR , EDate VARCHAR , Lat NUMBER , Lon NUMBER , STime VARCHAR ,ETime VARCHAR );");
         Cursor c = myDB2.rawQuery("SELECT * FROM " + "myTable", null);
 
         int Column1 = c.getColumnIndex("Subject");
@@ -57,7 +62,9 @@ public class Existing extends Activity {
         int Column5 = c.getColumnIndex("Lat");
         int Column6 = c.getColumnIndex("SDate");
         int Column8 = c.getColumnIndex("EDate");
-        int Column7 = c.getColumnIndex("Time");
+        int Column7 = c.getColumnIndex("STime");
+        int Column9 = c.getColumnIndex("ETime");
+
         // Check if our result was valid.
         c.moveToFirst();
         try {
@@ -80,8 +87,11 @@ public class Existing extends Activity {
                     String edate = c.getString(Column8);
                     data = data + "Date:" + edate + "\n";
 
-                    String time = c.getString(Column7);
-                    data = data + "Time:" + time + "\n";
+                    String Stime = c.getString(Column7);
+                    data = data + " Start Time:" + Stime + "\n";
+
+                    String Etime = c.getString(Column9);
+                    data = data + "End Time:" + Etime + "\n";
                     details.add(data);
                 } while (c.moveToNext());
 
@@ -142,8 +152,19 @@ public class Existing extends Activity {
                                 Toast.makeText(Existing.this, "Reminder is deleted successfully", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
 
+                                Set<Map.Entry<String, String>> se = map.entrySet();
 
-                                editor.remove(data);
+                                String delKey="";
+
+                                for (Map.Entry<String, String> me : se) {
+                                    if(me.getValue().equals(data))
+                                    {
+                                        delKey=me.getKey();
+                                        break;
+                                    }
+
+                                }
+                                editor.remove(delKey);
                                 editor.commit();
 
 

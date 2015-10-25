@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.text.format.Time;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +42,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -121,8 +123,8 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
         Set<Map.Entry<String, String>> se = map.entrySet();
         //min_distance=0;
-        Log.e("In MyService", "Map size:" + map.size());
-        for (Map.Entry<String, String> me : se) {
+      //  Log.e("In MyService", "Map size:" + map.size());
+       /* for (Map.Entry<String, String> me : se) {
 
             if (me.getValue().contains("-")) {
                 editor.remove(me.getKey());
@@ -133,6 +135,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
             Log.e("In MyService :", me.getKey() + " || " + me.getValue());
 
         }
+        */
 
           test=5;
         //====================================================
@@ -156,30 +159,89 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 toast = myCurrentLoc.getLatitude() + " " + myCurrentLoc.getLongitude();
                 Toast.makeText(MyService.this, toast, Toast.LENGTH_SHORT).show();
 
+                Time now = new Time();
+                now.setToNow();
+                int cMonth = now.month+1;
+                int cDay = now.monthDay;
+                int cHour = now.hour;
+                int cMin = now.minute;
+Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
                 //compare with every entry in Map
                 Set<Map.Entry<String, String>> se = map.entrySet();
 
                 for (Map.Entry<String, String> me : se) {
-                    String[] str = me.getValue().split(" ");
+                    String[] str = me.getKey().split(" ");
 
+                    Log.e("SharedP :",me.getValue());
 
                     double latdest = Double.parseDouble(str[0]);
                     double longdest = Double.parseDouble(str[1]);
+                    String sdate=str[2];
+                    String edate=str[3];
+                    String stime=str[4];
+                    String etime=str[5];
+
+                   String s[]=sdate.split("-");
+                    int stMonth=Integer.parseInt(s[1]);
+                    int stDay=Integer.parseInt(s[2]);
+
+                    s=edate.split("-");
+                    int etMonth=Integer.parseInt(s[1]);
+                    int etDay=Integer.parseInt(s[2]);
+
+
+                  String st[]=  stime.split(":");
+                  int sthr=Integer.parseInt(st[0]);
+                    int stmin =Integer.parseInt(st[1]);
+
+
+                    st=  etime.split(":");
+                    int ethr=Integer.parseInt(st[0]);
+                    int etmin =Integer.parseInt(st[1]);
+Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
+                    if(stMonth>cMonth)
+                        continue;
+                    if(stMonth == cMonth) {
+                        if (stDay > cDay)
+                            continue;
+                        if(stDay < cDay) {
+                            if (sthr > cHour)
+                                continue;
+                            if (sthr == cHour) {
+                                if (stmin > cMin)
+                                    continue;
+                                if (etmin < cMin) continue;
+                            }
+                        }
+                    }
+                    if(stDay == cDay)
+                        if(sthr>cHour)
+                            continue;
+
+                    if(sthr == cHour) {
+                        if (stmin > cMin)
+                            continue;
+                       if(etmin<cMin)continue;
+                    }
+
+
+
+
 
                     destLoc = new Location("Destination");
                     destLoc.setLatitude(latdest);
                     destLoc.setLongitude(longdest);
                     distance = myCurrentLoc.distanceTo(destLoc);
-                    //Log.e("tagrugby","Subject:"+me.getKey()+" || lat: "+str[0]+"   lod: "+str[1]+"  || distance:"+distance);
+                    Log.e("Required ",me.getKey()+" || "+me.getValue());
 
                     if(distance < 500)
                     {
-                        notify_subjects.add(me.getKey());
+                        notify_subjects.add(me.getValue());
                     }
 
 
                     if (min_distance > distance) {
-                        notify_subject = me.getKey();
+                        notify_subject =me.getValue();
                         min_distance = distance;
                     }
 
@@ -276,6 +338,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
             public void onProviderDisabled(String provider) {
             }
         };
+
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 
 
@@ -307,7 +370,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_LONG).show();
 
 
-       // Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
+       //Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
         // Vibrate for 500 milliseconds
        // v.vibrate(500);
 

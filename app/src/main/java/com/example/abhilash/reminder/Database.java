@@ -17,8 +17,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
-
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
 
 
 /**
@@ -33,6 +35,9 @@ public class Database extends Activity {
 
     SharedPreferences someData;
     SharedPreferences.Editor editor;
+    HashMap<String, String> map = new HashMap<String, String>();
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,6 +49,9 @@ public class Database extends Activity {
         someData = getSharedPreferences("SubLatLng",0);
         editor = someData.edit();
 
+        map = (HashMap<String, String>) someData.getAll();
+
+
   /* Create a Database. */
         try {
 
@@ -51,7 +59,7 @@ public class Database extends Activity {
    /* Create a Table in the Database. */
             myDB.execSQL("CREATE TABLE IF NOT EXISTS "
                     + TableName
-                    + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , SDate VARCHAR , EDate VARCHAR , Lat NUMBER , Lon NUMBER , Time VARCHAR );");
+                    + " ( Subject VARCHAR , Description VARCHAR , Location VARCHAR , SDate VARCHAR , EDate VARCHAR , Lat NUMBER , Lon NUMBER , STime VARCHAR , ETime VARCHAR );");
 
 
             ContentValues values = new ContentValues();
@@ -63,10 +71,13 @@ public class Database extends Activity {
             values.put("Lat", AddLocation.lat);
             values.put("SDate", MainActivity.sdate);
             values.put("EDate", MainActivity.edate);
-            values.put("time", MainActivity.time);
+            values.put("STime", MainActivity.time);
+            values.put("ETime", MainActivity.time2);
+
             myDB.insert("myTable", null, values);
 
-            editor.putString(MainActivity.sub, AddLocation.lat + " " + AddLocation.lng);
+            editor.putString(AddLocation.lat + " " + AddLocation.lng+" "+MainActivity.sdate+" "+MainActivity.edate
+                    +" "+MainActivity.time+" "+MainActivity.time2,MainActivity.sub);
             editor.commit();
             startService(new Intent(this,MyService.class));
 
@@ -81,7 +92,9 @@ public class Database extends Activity {
             int Column5 = c.getColumnIndex("Lat");
             int Column6 = c.getColumnIndex("SDate");
             int Column8 = c.getColumnIndex("EDate");
-            int Column7 = c.getColumnIndex("Time");
+            int Column7 = c.getColumnIndex("STime");
+            int Column9 = c.getColumnIndex("ETime");
+
             // Check if our result was valid.
             c.moveToFirst();
             if (c != null) {
@@ -103,11 +116,14 @@ public class Database extends Activity {
                     String edate = c.getString(Column8);
                     data = data + "End Date:" + edate + "\n";
 
-                    String time = c.getString(Column7);
-                    data = data + "Time:" + time + "\n";
+                    String Stime = c.getString(Column7);
+                    data = data + "Start Time:" + Stime + "\n";
+
+                    String Etime = c.getString(Column9);
+                    data = data + "Start Time:" + Etime + "\n";
                     details.add(data);
 
-                    editor.putString(subject,Lat+" "+Lon+" "+sdate+" "+edate+" "+time);
+                    editor.putString(Lat+" "+Lon+" "+sdate+" "+edate+" "+Stime+" "+Etime,subject);
                     //Des.add(desc);
                     //Loc.add(location);
 
@@ -173,7 +189,20 @@ public class Database extends Activity {
                                 Toast.makeText(Database.this, "Reminder is deleted successfully", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
 
-                                editor.remove(data);
+                                Set<Map.Entry<String, String>> se = map.entrySet();
+
+                                String delKey="";
+
+                                for (Map.Entry<String, String> me : se) {
+                                             if(me.getValue().equals(data))
+                                             {
+                                                 delKey=me.getKey();
+                                                 break;
+                                             }
+
+                                }
+                                editor.remove(delKey);
+                                Log.e("delete ",delKey+"||||||||||"+map.get(delKey));
                                 editor.commit();
 
                                 reminderAdapter.remove(forecast);

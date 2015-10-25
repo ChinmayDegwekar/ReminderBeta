@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     public static String edate;
     public static String time;
 
+    public static String time2;
+
     public static double Lat = 12.09;
     public static double Lon= 99.76;
 
@@ -74,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
 
         TimePicker tp =(TimePicker) findViewById(R.id.timePicker);
         time = tp.getCurrentHour()+":"+tp.getCurrentMinute();
+
+        TimePicker tp2 =(TimePicker) findViewById(R.id.timePicker2);
+        time2 = tp2.getCurrentHour()+":"+tp2.getCurrentMinute();
+
         startActivity(new Intent(MainActivity.this, AddLocation.class));
     }
 
@@ -87,8 +93,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        Log.e("App killed", "App destroyed start service :"+map.size());
-        if(map.size()!=0)
+        Log.e("App killed", "App destroyed start service :" + map.size());
+
         startService(new Intent(this, MyService.class));
     }
 
