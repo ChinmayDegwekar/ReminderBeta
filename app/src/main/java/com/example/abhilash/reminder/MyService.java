@@ -121,7 +121,11 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         editor = someData.edit();
         map = (HashMap<String, String>) someData.getAll();
 
+        if(map.size() == 0)
+            stopSelf();
+
         Set<Map.Entry<String, String>> se = map.entrySet();
+
         //min_distance=0;
       //  Log.e("In MyService", "Map size:" + map.size());
        /* for (Map.Entry<String, String> me : se) {
@@ -165,6 +169,9 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 int cDay = now.monthDay;
                 int cHour = now.hour;
                 int cMin = now.minute;
+
+                int minStartHr=23,maxEndHr=0;
+                int toBeProccessed=0;
 Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
                 //compare with every entry in Map
                 Set<Map.Entry<String, String>> se = map.entrySet();
@@ -199,32 +206,25 @@ Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
                     int ethr=Integer.parseInt(st[0]);
                     int etmin =Integer.parseInt(st[1]);
 Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
-                    if(stMonth>cMonth)
-                        continue;
-                    if(stMonth == cMonth) {
-                        if (stDay > cDay)
-                            continue;
-                        if(stDay < cDay) {
-                            if (sthr > cHour)
-                                continue;
-                            if (sthr == cHour) {
-                                if (stmin > cMin)
+                    //------
+                    if(cMonth == stMonth){
+                        if(cDay == stDay){
+                            if(cHour == sthr){
+                                if(cMin < stmin){
                                     continue;
-                                if (etmin < cMin) continue;
-                            }
-                        }
-                    }
-                    if(stDay == cDay)
-                        if(sthr>cHour)
-                            continue;
+                                }
 
-                    if(sthr == cHour) {
-                        if (stmin > cMin)
-                            continue;
-                       if(etmin<cMin)continue;
-                    }
-
-
+                            }else if(cHour < sthr || cHour > ethr) continue;
+                        }else if(cDay < stDay || cDay > etDay) continue;
+                    }else if(cMonth < stMonth || cMonth > etMonth) continue;
+                    //-------
+                         toBeProccessed++;
+                    Log.e("to be processed",":"+toBeProccessed);
+                   Log.e("sdfsdfsd",minStartHr+" \\ "+maxEndHr);
+                    if(minStartHr > sthr)
+                        minStartHr = sthr;
+                    if(maxEndHr < ethr )
+                        maxEndHr = ethr;
 
 
 
@@ -247,6 +247,14 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
 
                     //System.out.println(me.getKey()+"  --  "+me.getValue());
                 }
+
+
+                if(cHour > maxEndHr)// relax in night hours
+                {
+                    setNextAlarm( (minStartHr + 23 - maxEndHr )*60*60*1000  );
+                    stopSelf();
+                }
+
                 Log.e("tag", "Map size :" + map.size() + " || min_dist:" + min_distance);
                 if (min_distance < 500) {
                     Toast.makeText(MyService.this, "You are within 500 m of " + notify_subject, Toast.LENGTH_LONG).show();
@@ -290,34 +298,15 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
 
 
                 } else {
-                    //--------------------- Repeat-------------
 
-
-                    //--------------------- Repeat-------------
-
-                    mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
-                    // Create an Intent to broadcast to the AlarmNotificationReceiver
-                    mNotificationReceiverIntent = new Intent(MyService.this,
-                            AlarmNotificationReceiver.class);
-
-                    // Create an PendingIntent that holds the NotificationReceiverIntent
-                    mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
-                            MyService.this, 0, mNotificationReceiverIntent, 0);
-
-
-                    // Set single alarm
+                    if(toBeProccessed == 0 ) // start date end date with in range but mornings first alarm
+                    setNextAlarm((minStartHr-cHour)*60*100);  // only considering hour difference
 
                     next_alarm = distaceToTime(min_distance);
-                    mAlarmManager.set(AlarmManager.RTC_WAKEUP,
-                            System.currentTimeMillis() + next_alarm,
-                            mNotificationReceiverPendingIntent);//UPGRADEABLE
-                    // Show Toast message
-                    Toast.makeText(getApplicationContext(), " Alarm Set nearest :" + notify_subject + " || " + min_distance,
-                            Toast.LENGTH_SHORT).show();
 
-                    //-------------------------------------
 
+
+               setNextAlarm(next_alarm);
                 }
 
            //     PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -564,7 +553,18 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
     }
 
     public long distaceToTime(double distance) {
-        return 30000;
+        if(distance == Double.MAX_VALUE)
+            return 30*1000;
+
+
+        if(distance > 20*1000 )// 20KM
+          return 20*60*1000; // 20 min'
+
+        if(distance > 10*1000)    // change to 2  debug within 10 km
+            return ( ((int)distance/1)/1000 )*60*1000;
+
+        else
+        return 30*1000;     // 30 sec atleast for dis == 500   that is 30 sec is fastest update time
 
 
     }
@@ -600,6 +600,33 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
         } else {
             return null;
         }
+
+    }
+
+    public void setNextAlarm(long next_alarm)
+    {
+        mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        // Create an Intent to broadcast to the AlarmNotificationReceiver
+        mNotificationReceiverIntent = new Intent(MyService.this,
+                AlarmNotificationReceiver.class);
+
+        // Create an PendingIntent that holds the NotificationReceiverIntent
+        mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
+                MyService.this, 0, mNotificationReceiverIntent, 0);
+
+
+        // Set single alarm
+
+
+        mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + next_alarm,
+                mNotificationReceiverPendingIntent);//UPGRADEABLE
+        // Show Toast message
+        Toast.makeText(getApplicationContext(), " Alarm Set nearest :" + notify_subject + " || " + min_distance,
+                Toast.LENGTH_SHORT).show();
+
+        //-------------------------------------
 
     }
 }
