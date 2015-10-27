@@ -1,5 +1,7 @@
 package com.example.abhilash.reminder;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,12 +13,21 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    private AlarmManager mAlarmManager;
+    private Intent mNotificationReceiverIntent, mLoggerReceiverIntent;
+    private PendingIntent mNotificationReceiverPendingIntent;
+
+
+
+
 
     public static String sub;
     public static String des;
@@ -94,8 +105,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         Log.e("App killed", "App destroyed start service :" + map.size());
-
-        startService(new Intent(this, MyService.class));
+        setNextAlarm(30*1000);
+       // startService(new Intent(this, MyService.class));
     }
 
     @Override
@@ -113,5 +124,34 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+
+
+    public void setNextAlarm(long next_alarm)
+    {
+        mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        // Create an Intent to broadcast to the AlarmNotificationReceiver
+        mNotificationReceiverIntent = new Intent(MainActivity.this,
+                AlarmNotificationReceiver.class);
+
+        // Create an PendingIntent that holds the NotificationReceiverIntent
+        mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
+                MainActivity.this, 0, mNotificationReceiverIntent, 0);
+
+
+        // Set single alarm
+
+
+        mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + next_alarm,
+                mNotificationReceiverPendingIntent);//UPGRADEABLE
+        // Show Toast message
+        Toast.makeText(getApplicationContext(), " Next alarm set .. ",
+                Toast.LENGTH_SHORT).show();
+
+        //-------------------------------------
+
+    }
 
 }

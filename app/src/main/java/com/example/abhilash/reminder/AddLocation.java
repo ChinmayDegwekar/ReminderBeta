@@ -313,7 +313,8 @@ public class AddLocation extends AppCompatActivity implements
                 lng = dragedTo.longitude;
                 markerLocation.setLatitude(dragedTo.latitude);
                 markerLocation.setLongitude(dragedTo.longitude);
-                String s=latLongToAddress(markerLocation);
+
+                String s=latLongToAddress(markerLocation);// s="no net connection
                 AddLocation.address = s;
                 mAutocompleteView.setText(s);
                 gotLoc = true;
@@ -358,8 +359,9 @@ public class AddLocation extends AppCompatActivity implements
                     1);
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
+            return "Internet connectivity problem then";
             //errorMessage = getString(R.string.service_not_available);
-            Log.e(TAG, "errorMessage", ioException);
+           // Log.e(TAG, "errorMessage", ioException);
         } catch (IllegalArgumentException illegalArgumentException) {
             // Catch invalid latitude or longitude values.
             // errorMessage = getString(R.string.invalid_lat_long_used);

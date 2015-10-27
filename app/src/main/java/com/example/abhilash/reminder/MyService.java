@@ -60,12 +60,16 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     Intent in;
     int test;
     ArrayList<String> notify_subjects=new ArrayList<String>();
+    ArrayList<Double> notify_distances=new ArrayList<Double>();
+
 
 
     //-------------
+    PowerManager.WakeLock mWakeLock;
+
     NotificationManager nm;
     static final int notification_id = 136432;
-    PendingIntent pi;
+    PendingIntent pi[];
     private final long[] mVibratePattern = { 0, 500 ,500 ,500,500,500 };
     //------------------------
     String toast = "not connected yet";
@@ -76,6 +80,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
     double distance = 0;
     double min_distance = Double.MAX_VALUE;
     long next_alarm = 500;
+    long next_alarm2= 0;
     String notify_subject;
     LocationManager locationManager;
     //------------repeat--------------------
@@ -116,6 +121,10 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         // Let it continue running until it is stopped.
 
         //version 1.0----------------
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakeLockTag");
+        mWakeLock.acquire();
+
 
         someData = getSharedPreferences("SubLatLng", 0);
         editor = someData.edit();
@@ -127,7 +136,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         Set<Map.Entry<String, String>> se = map.entrySet();
 
         //min_distance=0;
-      //  Log.e("In MyService", "Map size:" + map.size());
+        //  Log.e("In MyService", "Map size:" + map.size());
        /* for (Map.Entry<String, String> me : se) {
 
             if (me.getValue().contains("-")) {
@@ -141,7 +150,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         }
         */
 
-          test=5;
+        test=5;
         //====================================================
         // setup google api client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -172,7 +181,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
                 int minStartHr=23,maxEndHr=0;
                 int toBeProccessed=0;
-Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
+                Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
                 //compare with every entry in Map
                 Set<Map.Entry<String, String>> se = map.entrySet();
 
@@ -188,7 +197,7 @@ Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
                     String stime=str[4];
                     String etime=str[5];
 
-                   String s[]=sdate.split("-");
+                    String s[]=sdate.split("-");
                     int stMonth=Integer.parseInt(s[1]);
                     int stDay=Integer.parseInt(s[2]);
 
@@ -197,15 +206,15 @@ Log.e("Time check",cMonth+" "+cDay+" "+cHour+" "+cMin );
                     int etDay=Integer.parseInt(s[2]);
 
 
-                  String st[]=  stime.split(":");
-                  int sthr=Integer.parseInt(st[0]);
+                    String st[]=  stime.split(":");
+                    int sthr=Integer.parseInt(st[0]);
                     int stmin =Integer.parseInt(st[1]);
 
 
                     st=  etime.split(":");
                     int ethr=Integer.parseInt(st[0]);
                     int etmin =Integer.parseInt(st[1]);
-Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
+                    Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
                     //------
                     if(cMonth == stMonth){
                         if(cDay == stDay){
@@ -218,9 +227,9 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
                         }else if(cDay < stDay || cDay > etDay) continue;
                     }else if(cMonth < stMonth || cMonth > etMonth) continue;
                     //-------
-                         toBeProccessed++;
+                    toBeProccessed++;
                     Log.e("to be processed",":"+toBeProccessed);
-                   Log.e("sdfsdfsd",minStartHr+" \\ "+maxEndHr);
+                    Log.e("sdfsdfsd",minStartHr+" \\ "+maxEndHr);
                     if(minStartHr > sthr)
                         minStartHr = sthr;
                     if(maxEndHr < ethr )
@@ -237,12 +246,14 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
                     if(distance < 500)
                     {
                         notify_subjects.add(me.getValue());
+                        notify_distances.add(distance);
                     }
 
 
                     if (min_distance > distance) {
                         notify_subject =me.getValue();
                         min_distance = distance;
+
                     }
 
                     //System.out.println(me.getKey()+"  --  "+me.getValue());
@@ -263,24 +274,31 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
                     v.vibrate(mVibratePattern, 5 );
 
                     //----------------------------------------------------------------
+                    pi = new PendingIntent[10];
+                    Intent not_intent[] = new Intent[10];
 
-                           nm=(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    Intent not_intent = new Intent(MyService.this,Existing.class);
+                    nm=(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    //Intent not_intent = new Intent(MyService.this,Existing.class);
 
                     int i=notify_subjects.size();
                     do {
                         nm.cancel(notification_id+i);
+                         not_intent[i-1] = new Intent(MyService.this,Alert.class);
+                        String body = notify_subjects.get(i-1);
+                        double distance = notify_distances.get(i-1);
 
+                        not_intent[i-1].putExtra("subject",body);
+                        not_intent[i-1].putExtra("distance", distance);
                         test--;
                         if(test<=0)break;
-                        pi = PendingIntent.getActivity(MyService.this, 0, not_intent, 0);
+                        pi[i-1] = PendingIntent.getActivity(MyService.this, 0, not_intent[i-1], 0);
 
-                        String body = notify_subjects.get(i-1);
+
                         String title = "You are within 500 mts to this";
 
                         Notification n = new Notification(R.drawable.common_signin_btn_icon_focus_dark, body
                                 , System.currentTimeMillis());
-                        n.setLatestEventInfo(MyService.this, body, title, pi);
+                        n.setLatestEventInfo(MyService.this, body, title, pi[i-1]);
                         n.flags |= Notification.FLAG_AUTO_CANCEL;
                         n.defaults = Notification.DEFAULT_ALL;
                         nm.notify(notification_id+i, n);
@@ -293,26 +311,26 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
 
                     //------------------------------------------------------------------
 
-
+                    setNextAlarm(30*1000);
                     stopSelf();
 
 
                 } else {
 
-                    if(toBeProccessed == 0 ) // start date end date with in range but mornings first alarm
-                    setNextAlarm((minStartHr-cHour)*60*100);  // only considering hour difference
+                    if (toBeProccessed == 0) // start date end date with in range but mornings first alarm
+                        setNextAlarm((minStartHr-cHour)*60*100);  // only considering hour difference
 
                     next_alarm = distaceToTime(min_distance);
 
 
 
-               setNextAlarm(next_alarm);
+                    setNextAlarm(next_alarm);
                 }
 
-           //     PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            //    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-             //           "MyWakelockTag");
-              //  wakeLock.release();
+                //     PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                //    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                //           "MyWakelockTag");
+                //  wakeLock.release();
 
                 stopSelf();//calls destroy method
             }
@@ -356,12 +374,13 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
     public void onDestroy() {
         super.onDestroy();
         mGoogleApiClient.disconnect();
+        mWakeLock.release();
         Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_LONG).show();
 
 
-       //Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
+        //Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);
         // Vibrate for 500 milliseconds
-       // v.vibrate(500);
+        // v.vibrate(500);
 
 
     }
@@ -558,13 +577,13 @@ Log.e("temp",stDay+" "+etDay+" "+stime +"  "+etime);
 
 
         if(distance > 20*1000 )// 20KM
-          return 20*60*1000; // 20 min'
+            return 20*60*1000; // 20 min'
 
         if(distance > 10*1000)    // change to 2  debug within 10 km
             return ( ((int)distance/1)/1000 )*60*1000;
 
         else
-        return 30*1000;     // 30 sec atleast for dis == 500   that is 30 sec is fastest update time
+            return 30*1000;     // 30 sec atleast for dis == 500   that is 30 sec is fastest update time
 
 
     }

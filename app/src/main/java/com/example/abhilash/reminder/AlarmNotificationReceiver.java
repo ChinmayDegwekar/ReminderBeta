@@ -70,10 +70,10 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
         //context.startService(background);
         //context.startService(new Intent(context, MyService.class));
         if(map.size()!=0) {
-            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    "MyWakelockTag");
-            wakeLock.acquire(5000);
+          //  PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+           // PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+           //         "MyWakelockTag");
+          //  wakeLock.acquire(5000);
             context.startService(new Intent(context, MyService.class));
         }
 
