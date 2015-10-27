@@ -274,34 +274,34 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                     v.vibrate(mVibratePattern, 5 );
 
                     //----------------------------------------------------------------
-                    pi = new PendingIntent[10];
-                    Intent not_intent[] = new Intent[10];
+                  //  pi = new PendingIntent;
+                 //   Intent not_intent[] = new Intent[10];
 
                     nm=(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     //Intent not_intent = new Intent(MyService.this,Existing.class);
 
                     int i=notify_subjects.size();
                     do {
-                        nm.cancel(notification_id+i);
-                         not_intent[i-1] = new Intent(MyService.this,Alert.class);
+                        nm.cancel(i-1);
+                      Intent   not_intent = new Intent(MyService.this,Alert.class);
                         String body = notify_subjects.get(i-1);
                         double distance = notify_distances.get(i-1);
 
-                        not_intent[i-1].putExtra("subject",body);
-                        not_intent[i-1].putExtra("distance", distance);
+                        not_intent.putExtra("subject", body);
+                        not_intent.putExtra("distance", distance);
                         test--;
                         if(test<=0)break;
-                        pi[i-1] = PendingIntent.getActivity(MyService.this, 0, not_intent[i-1], 0);
+                        PendingIntent pi= PendingIntent.getActivity(MyService.this, i-1, not_intent, PendingIntent.FLAG_ONE_SHOT );
 
 
                         String title = "You are within 500 mts to this";
 
                         Notification n = new Notification(R.drawable.common_signin_btn_icon_focus_dark, body
                                 , System.currentTimeMillis());
-                        n.setLatestEventInfo(MyService.this, body, title, pi[i-1]);
+                        n.setLatestEventInfo(MyService.this, body, title, pi);
                         n.flags |= Notification.FLAG_AUTO_CANCEL;
                         n.defaults = Notification.DEFAULT_ALL;
-                        nm.notify(notification_id+i, n);
+                        nm.notify(i-1, n);
                         i--;
                     }while(i>0);
 
