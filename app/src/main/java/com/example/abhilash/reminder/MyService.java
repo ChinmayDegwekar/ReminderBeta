@@ -327,7 +327,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                     setNextAlarm(next_alarm);
                 }
 
-                //     PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                //     PowerManager powerManager  = (PowerManager) getSystemService(Context.POWER_SERVICE);
                 //    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 //           "MyWakelockTag");
                 //  wakeLock.release();
