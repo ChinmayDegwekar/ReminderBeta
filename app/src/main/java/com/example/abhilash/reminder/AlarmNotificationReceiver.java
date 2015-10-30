@@ -21,14 +21,14 @@ import android.widget.Toast;
 
 public class AlarmNotificationReceiver extends BroadcastReceiver {
     // Notification ID to allow for future updates
-    private static final int MY_NOTIFICATION_ID = 1;
+   /* private static final int MY_NOTIFICATION_ID = 1;
     private static final String TAG = "AlarmNotificationReceiver";
 
     // Notification Text Elements
     private final CharSequence tickerText = "Are You Playing Angry Birds Again!";
     private final CharSequence contentTitle = "A Kind Reminder";
     private final CharSequence contentText = "Get back to studying!!";
-
+*/
     // Notification Action Elements
     private Intent mNotificationIntent;
     private PendingIntent mContentIntent;
@@ -42,7 +42,7 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
     //   private final Uri soundURI = Uri
     //         .parse("android.resource://course.examples.Alarms.AlarmCreate/"
     //               + R.raw.alarm_rooster);
-    private final long[] mVibratePattern = { 0, 200, 200, 300 };
+  //  private final long[] mVibratePattern = { 0, 200, 200, 300 };
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -85,7 +85,7 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
 
         // Toast.makeText(getApplicationContext(),"alarm is off",Toast.LENGTH_LONG).show();
         // Build the Notification
-        Notification.Builder notificationBuilder = new Notification.Builder(
+        /*Notification.Builder notificationBuilder = new Notification.Builder(
                 context).setTicker(tickerText)
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setAutoCancel(true).setContentTitle(contentTitle)
@@ -95,7 +95,7 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
         // Get the NotificationManager
         NotificationManager mNotificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-
+*/
         // Pass the Notification to the NotificationManager:
         // mNotificationManager.notify(MY_NOTIFICATION_ID,
         //       notificationBuilder.build());

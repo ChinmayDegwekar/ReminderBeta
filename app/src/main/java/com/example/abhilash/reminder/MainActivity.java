@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         sdate = String.valueOf(dp1.getYear())+"-"+String.valueOf(dp1.getMonth()+1)+"-"+String.valueOf(dp1.getDayOfMonth());
 
         DatePicker dp2 =(DatePicker) findViewById(R.id.datePicker2);
-        edate = String.valueOf(dp2.getYear())+"-"+String.valueOf(dp2.getMonth()+1)+"-"+String.valueOf(dp2.getDayOfMonth());
+        edate = String.valueOf(dp2.getYear())+"-"+String.valueOf(dp2.getMonth() + 1)+"-"+String.valueOf(dp2.getDayOfMonth());
 
         TimePicker tp =(TimePicker) findViewById(R.id.timePicker);
         time = tp.getCurrentHour()+":"+tp.getCurrentMinute();
@@ -91,6 +91,9 @@ public class MainActivity extends AppCompatActivity {
         TimePicker tp2 =(TimePicker) findViewById(R.id.timePicker2);
         time2 = tp2.getCurrentHour()+":"+tp2.getCurrentMinute();
 
+        if (sub == null)
+            Toast.makeText(MainActivity.this,"Please enter subject!!",Toast.LENGTH_LONG).show();
+        else
         startActivity(new Intent(MainActivity.this, AddLocation.class));
     }
 

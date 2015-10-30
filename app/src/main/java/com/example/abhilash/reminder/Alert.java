@@ -101,7 +101,7 @@ public class Alert extends Activity
         bSnooze.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setNextAlarm(30 * 1000);
+                setNextAlarm(30 * 1000);// ideally it should be around 10 mins.
                 Toast.makeText(getApplicationContext(), "Snoozed " ,
                         Toast.LENGTH_SHORT).show();
                 finish();

@@ -133,7 +133,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         if(map.size() == 0)
             stopSelf();
 
-        Set<Map.Entry<String, String>> se = map.entrySet();
+       // Set<Map.Entry<String, String>> se = map.entrySet();
 
         //min_distance=0;
         //  Log.e("In MyService", "Map size:" + map.size());
@@ -150,7 +150,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         }
         */
 
-        test=5;
+
         //====================================================
         // setup google api client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -289,14 +289,13 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
 
                         not_intent.putExtra("subject", body);
                         not_intent.putExtra("distance", distance);
-                        test--;
-                        if(test<=0)break;
+
                         PendingIntent pi= PendingIntent.getActivity(MyService.this, i-1, not_intent, PendingIntent.FLAG_ONE_SHOT );
 
 
                         String title = "You are within 500 mts to this";
 
-                        Notification n = new Notification(R.drawable.common_signin_btn_icon_focus_dark, body
+                        Notification n = new Notification(R.raw.android_app_icon, body
                                 , System.currentTimeMillis());
                         n.setLatestEventInfo(MyService.this, body, title, pi);
                         n.flags |= Notification.FLAG_AUTO_CANCEL;
@@ -318,13 +317,14 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
                 } else {
 
                     if (toBeProccessed == 0) // start date end date with in range but mornings first alarm
-                        setNextAlarm((minStartHr-cHour)*60*100);  // only considering hour difference
+                    {
+                        setNextAlarm((minStartHr - cHour) * 60 * 100);  // only considering hour difference
+                    }else {
+                        next_alarm = distaceToTime(min_distance);
 
-                    next_alarm = distaceToTime(min_distance);
 
-
-
-                    setNextAlarm(next_alarm);
+                        setNextAlarm(next_alarm);
+                    }
                 }
 
                 //     PowerManager powerManager  = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -375,7 +375,7 @@ public class MyService extends Service implements GoogleApiClient.ConnectionCall
         super.onDestroy();
         mGoogleApiClient.disconnect();
         mWakeLock.release();
-        Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Service Destroyed: " + toast, Toast.LENGTH_SHORT).show();
 
 
         //Vibrator v = (Vibrator) MyService.this.getSystemService(Context.VIBRATOR_SERVICE);

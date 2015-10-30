@@ -173,7 +173,7 @@ public class AddLocation extends AppCompatActivity implements
                     Intent intent = new Intent(AddLocation.this, Database.class);
                     startActivity(intent);
                 } else {
-                    Toast.makeText(AddLocation.this, "Select toh kar", Toast.LENGTH_SHORT);
+                    Toast.makeText(AddLocation.this, "Select a location!!!!!", Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -181,14 +181,7 @@ public class AddLocation extends AppCompatActivity implements
 
     }
 
-    /*private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
-                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
-        Log.e(TAG, res.getString(Integer.parseInt("0"), name, id, address, phoneNumber,
-        websiteUri));
-        return Html.fromHtml(res.getString(Integer.parseInt("0"), name, id, address, phoneNumber,
-                websiteUri));
 
-    }*/
 
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
@@ -339,7 +332,7 @@ public class AddLocation extends AppCompatActivity implements
 
 
         gotLoc = true;
-        CameraPosition target = CameraPosition.builder().target(current).zoom(17).build();
+        CameraPosition target = CameraPosition.builder().target(current).zoom(15).build();
 
         gmap.animateCamera(CameraUpdateFactory.newCameraPosition(target), 3000, null);
     }

@@ -77,7 +77,8 @@ public class Database extends Activity {
             myDB.insert("myTable", null, values);
 
             editor.putString(AddLocation.lat + " " + AddLocation.lng+" "+MainActivity.sdate+" "+MainActivity.edate
-                    +" "+MainActivity.time+" "+MainActivity.time2,MainActivity.sub);
+                    +" "+MainActivity.time+" "+MainActivity.time2,
+                    MainActivity.sub);
             editor.commit();
             startService(new Intent(this,MyService.class));
 

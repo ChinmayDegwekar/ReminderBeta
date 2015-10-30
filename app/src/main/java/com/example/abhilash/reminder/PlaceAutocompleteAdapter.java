@@ -1,5 +1,6 @@
 package com.example.abhilash.reminder;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.text.style.CharacterStyle;
@@ -175,6 +176,7 @@ public class PlaceAutocompleteAdapter
      * @see Places#GEO_DATA_API#getAutocomplete(CharSequence)
      * @see AutocompletePrediction#freeze()
      */
+    @SuppressLint("LongLogTag")
     private ArrayList<AutocompletePrediction> getAutocomplete(CharSequence constraint) {
         if (mGoogleApiClient.isConnected()) {
             // Log.i(TAG, "Starting autocomplete query for: " + constraint);
